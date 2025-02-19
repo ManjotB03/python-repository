@@ -1,71 +1,63 @@
 import requests
 import random
 
-BASE_URL = 'https://pokeapi.co/api/v2/pokemon/ditto'
-
-
-def get_pokemon_data(pokemon_name):
-    response = requests.get(BASE_URL + pokemon_name.lower())
+# Fetch Pokemon data from PokeAPI
+def get_pokemon(pokemon_name):
+    url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_name.lower()}"
+    response = requests.get(url)
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Pokemon {pokemon_name} not found!")
+        print(f"Failed to fetch data for {pokemon_name}")
         return None
 
+# Display basic Pokemon info
+def display_pokemon(pokemon):
+    name = pokemon['name'].capitalize()
+    types = [t['type']['name'] for t in pokemon['types']]
+    abilities = [a['ability']['name'] for a in pokemon['abilities']]
+    print(f"{name}: Type(s): {', '.join(types)} | Abilities: {', '.join(abilities)}")
 
-def display_pokemon_info(pokemon):
-    print(f"{pokemon['name'].capitalize()} - Type: {[t['type']['name'] for t in pokemon['types']]}")
-    print("Abilities:", [a['ability']['name'] for a in pokemon['abilities']])
-    print("Moves:", [m['move']['name'] for m in pokemon['moves'][:5]])
-    print("HP:", pokemon['stats'][0]['base_stat'])
-    print("Attack:", pokemon['stats'][1]['base_stat'])
-    print("Defense:", pokemon['stats'][2]['base_stat'])
-
-
+# Simulate a battle between two Pokemon
 def battle(pokemon1, pokemon2):
-    hp1 = pokemon1['stats'][0]['base_stat']
-    hp2 = pokemon2['stats'][0]['base_stat']
+    print(f"Battle: {pokemon1['name'].capitalize()} vs {pokemon2['name'].capitalize()}")
 
-    attack1 = pokemon1['stats'][1]['base_stat']
-    defense2 = pokemon2['stats'][2]['base_stat']
+    p1_hp = pokemon1['stats'][0]['base_stat']
+    p2_hp = pokemon2['stats'][0]['base_stat']
 
-    attack2 = pokemon2['stats'][1]['base_stat']
-    defense1 = pokemon1['stats'][2]['base_stat']
+    while p1_hp > 0 and p2_hp > 0:
+        p1_attack = random.randint(10, 30)
+        p2_attack = random.randint(10, 30)
 
-    print("Battle Start!")
-    while hp1 > 0 and hp2 > 0:
-        damage_to_2 = max(1, attack1 - defense2 // 2)
-        damage_to_1 = max(1, attack2 - defense1 // 2)
+        print(f"{pokemon1['name'].capitalize()} attacks {pokemon2['name'].capitalize()} for {p1_attack} damage!")
+        p2_hp -= p1_attack
+        if p2_hp <= 0:
+            print(f"{pokemon2['name'].capitalize()} fainted!")
+            break
 
-        if random.choice([True, False]):
-            hp2 -= damage_to_2
-            print(f"{pokemon1['name']} attacks {pokemon2['name']} and deals {damage_to_2} damage. {pokemon2['name']} has {hp2} HP left.")
-        else:
-            hp1 -= damage_to_1
-            print(f"{pokemon2['name']} attacks {pokemon1['name']} and deals {damage_to_1} damage. {pokemon1['name']} has {hp1} HP left.")
+        print(f"{pokemon2['name'].capitalize()} attacks {pokemon1['name'].capitalize()} for {p2_attack} damage!")
+        p1_hp -= p2_attack
+        if p1_hp <= 0:
+            print(f"{pokemon1['name'].capitalize()} fainted!")
+            break
 
-    if hp1 > 0:
-        print(f"{pokemon1['name']} wins!")
+    if p1_hp > 0:
+        print(f"{pokemon1['name'].capitalize()} wins!")
     else:
-        print(f"{pokemon2['name']} wins!")
+        print(f"{pokemon2['name'].capitalize()} wins!")
 
-
+# Main game loop
 def main():
-    pokemon_name1 = input("Enter the name of the first Pokemon: ")
-    pokemon_name2 = input("Enter the name of the second Pokemon: ")
+    pokemon_name1 = input("Enter the name of your first Pokemon: ").strip()
+    pokemon_name2 = input("Enter the name of your second Pokemon: ").strip()
 
-    pokemon1 = get_pokemon_data(pokemon_name1)
-    pokemon2 = get_pokemon_data(pokemon_name2)
+    pokemon1 = get_pokemon(pokemon_name1)
+    pokemon2 = get_pokemon(pokemon_name2)
 
     if pokemon1 and pokemon2:
-        print("\nPokemon 1 Info:")
-        display_pokemon_info(pokemon1)
-
-        print("\nPokemon 2 Info:")
-        display_pokemon_info(pokemon2)
-
+        display_pokemon(pokemon1)
+        display_pokemon(pokemon2)
         battle(pokemon1, pokemon2)
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
